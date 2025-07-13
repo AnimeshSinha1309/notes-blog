@@ -1,4 +1,32 @@
-<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[cs-notes]]></title><description><![CDATA[Obsidian digital garden]]></description><link>http://github.com/dylang/node-rss</link><image><url>lib/media/favicon.png</url><title>cs-notes</title><link/></image><generator>Webpage HTML Export plugin for Obsidian</generator><lastBuildDate>Sun, 13 Jul 2025 15:19:51 GMT</lastBuildDate><atom:link href="lib/rss.xml" rel="self" type="application/rss+xml"/><pubDate>Sun, 13 Jul 2025 15:19:51 GMT</pubDate><ttl>60</ttl><dc:creator/><item><title><![CDATA[Architectural Decisions and Evolution]]></title><description><![CDATA[ 
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[cs-notes]]></title><description><![CDATA[Obsidian digital garden]]></description><link>http://github.com/dylang/node-rss</link><image><url>lib/media/favicon.png</url><title>cs-notes</title><link/></image><generator>Webpage HTML Export plugin for Obsidian</generator><lastBuildDate>Sun, 13 Jul 2025 15:57:07 GMT</lastBuildDate><atom:link href="lib/rss.xml" rel="self" type="application/rss+xml"/><pubDate>Sun, 13 Jul 2025 15:57:07 GMT</pubDate><ttl>60</ttl><dc:creator/><item><title><![CDATA[Graphics Processing Units]]></title><description><![CDATA[ 
+ <br>Classical processors have IPC of 4-6 max, usually 1.5-2.5. Limited by fetch and issue width as they have to be general purpose.<br>
+💡 Make a processor with 100s of ALUs that do simple operations.]]></description><link>notes/computer-architecture/graphics-processing-units.html</link><guid isPermaLink="false">Notes/Computer Architecture/Graphics Processing Units.md</guid><pubDate>Sun, 01 Dec 2024 12:55:46 GMT</pubDate></item><item><title><![CDATA[In order processor pipelines]]></title><description><![CDATA[ 
+ <br><br><img alt="image-in_order_pipeline_of_cpu.png" src="lib/media/image-in_order_pipeline_of_cpu.png"><br><br>Processor can be divided into 5 logical stages:<br>
+<br>Instruction Fetch
+<br>Operand Fetch
+<br>Execute
+<br>Memory Access
+<br>Register Write-back
+<br><br>Problem with this design: Only one stage of chip is active at any time out of 5.<br>
+Solution: Make each phase process a different instruction.<br>Problem: How to we make each step not interfere with others<br>
+Add pipeline latches. These are negative edge-triggered flip flops at the end of each step (shown in green). The store output of each step of pipeline so that it can be used in the input of the next step (in the next timeframe).<br>Data Hazard: Instruction A does a write on some register, before it's register write-back is done next Instruction B reaches operand-fetch and reads the old value.<br>
+Naive idea, add bubbles (no-ops) whenever such data dependency is noted. We may need to add atmost 3 no-ops, processor decides when to stall.<br>Problem: Data dependencies are pretty common, no-ops are expensive.<br>
+Our previous solution is not the best, so what we can do is feed information not just from the register file but also from the intermediate outputs, and we can multiplex these sources. We do this forwarding as late as possible, and values get forwarded to any prior-stage with future-instruction that needs it. Here we have 4 forwarding multiplexers: RW  MA, RW  EX, RW  OF, RW  EX.<br>Load-Use Hazard: Load produces output one cycle late (because it comes from memory access as opposed to others which come from execute). So it is one instruction cycle too late for the next instruction's execute step.<br>
+Nothing other than stalling can be done, which has to be done by a stall controller which can see the whole pipeline.<br>Control Hazard: A branch instruction is followed by other instructions I, if the branch is taken the other instructions should not have been executed, but they will get through some stages of the pipeline<br>
+We need to convert the incorrectly taken instructions to No-Ops retroactively. We do this by setting a bit in the instruction packet which does that.<br><br>Instructions are of 2 types:<br>
+<br>Static Instructions: Number of instructions that occur in code, code in loop counted only once.
+<br>Dynamic Instructions: Number of instructions that are actually executed, things in loop counted the number of times the loop runs.<br>
+We will use dynamic instructions to measure perfomance.
+<br>Performance is usually computed over several runs of several programs.<br>
+Performance is measured relative to other processors, usually taking a Geometric mean of rations of performance on each program.<br>Performance is:<br>
+<br>How to get high frequency:<br>
+<br>Use smaller, power efficient transistors. Power dissipation is approximately proportional to cube of frequency. There are other ways to reduce power dissipation as well, discussed later.
+<br>Have more pipeline stages, now that each stage is smaller, we can run the clock many times. IPC (instructions per cycle) is one for non-pipelined processor, and less than one for pipelined, but clock speed can increase a lot on pipelining.<br>
+However, increasing pipelines anymore leads to more stall, more latch delays, and therefore we don't get frequency gains. We haven't seen a large frequency increase since about 3GHz in 2005.
+<br>How to get higher IPC:<br>
+<br>Depends on Architecture, things like value forwarding help reduce stall cycles.
+<br>Depends on Compiler, it can rearrange code to loose less cycles to data and control hazards
+]]></description><link>notes/computer-architecture/processor-stages-and-pipelines.html</link><guid isPermaLink="false">Notes/Computer Architecture/Processor Stages and Pipelines.md</guid><pubDate>Sat, 30 Nov 2024 14:13:00 GMT</pubDate><enclosure url="lib/media/image-in_order_pipeline_of_cpu.png" length="0" type="image/png"/><content:encoded>&lt;figure&gt;&lt;img src="lib/media/image-in_order_pipeline_of_cpu.png"&gt;&lt;/figure&gt;</content:encoded></item><item><title><![CDATA[Architectural Decisions and Evolution]]></title><description><![CDATA[ 
  <br>This is what the original "Attention is all you need" transformer looks like. We want to understand each bit and piece and how it has evolved.<br><img alt="image-transformer-architecture.png" src="lib/media/image-transformer-architecture.png"><br><br><br>These are some metrics that we have <br>
 <br>Compression Ratio: Bytes of text that are encoded per token, on average. Higher compression implies smaller sequences, hence better.
 <br>Vocabulary Size: Number of different tokens in our dictionary, should not be too huge and should be efficiently used (i.e. some tokens shouldn't appear almost never)
@@ -43,64 +71,7 @@ Wider networks are more efficient for the same parameter count.<br>
 But there are also more concerns:<br>
 <br>Pipeline parallel: helps parallelize deeper networks.
 <br>Tensor parallel: helps more with wider networks. Needs really fast inter-GPU communication.
-]]></description><link>notes/large-language-models/architectural-decisions-and-evolution.html</link><guid isPermaLink="false">Notes/Large Language Models/Architectural Decisions and Evolution.md</guid><pubDate>Sun, 13 Jul 2025 14:04:54 GMT</pubDate><enclosure url="lib/media/image-transformer-architecture.png" length="0" type="image/png"/><content:encoded>&lt;figure&gt;&lt;img src="lib/media/image-transformer-architecture.png"&gt;&lt;/figure&gt;</content:encoded></item><item><title><![CDATA[Policy Methods]]></title><description><![CDATA[ 
- <br><br>Optimise the Policy directly, without computing value function.<br>Topics:<br>
-<br>Finite Difference Policy Gradients: Use finite differences across time.
-<br>Monte-Carlo Policy Gradient: Follows a randomly sampled trajectory and can move to directions to make it's policy better.
-<br>Actor-Critic Policy Gradient: Combining the methods above with the value function methods.
-<br>We used to generate the policy using value function approximation<br>
-<br>We have a parameterised policy function, where we can change the parameters to improve the policy by changing the distribution from which it's sampled. Adjusting  to maximise net reward is the goal.<br>
-<br><br><br>Advantages:<br>
-<br>Easier to represent the policy compactly, e.g. in Atari games move direction is easier than expected number of points in the future moves.
-<br>Better convergence, more stable, value function can often oscillate or explode or fail to converge.
-<br>Maximising over all actions can be prohibitively expensive, e.g. in continuous action spaces, or combinatorial. Adjust only parameters .
-<br>Learn stochastic policies, e.g. playing rock-paper-scissors needs stochastic behaviour.
-<br>Disadvantages:<br>
-<br>Hard to evaluate policy, evaluation is stochastic.
-<br>Maybe slower to converge, since here small gradient based steps are taken whereas value function maximises in one go.
-<br>It may converge to local optimal instead of the global optimal/
-<br>The contrary of the point above, Value function maybe more compact.
-<br><br><img alt="Stochastic Policy requirement" src="lib/media/image-stochastic-policy-example.png"><br>If we can measure only features of the current state, i.e. it's neighbors, then the two gray cells are identical. So it's not possible to play well here, you always go west or east in the gray squares, so reaching treasure is bad, and you just oscillate (between the left 2 squares) being given a deterministic policy. Stochastic solves the issue.<br>For Markov Decision Process, i.e. Fully Observed, then Deterministic Optimal Policy exists. But this is for POMDP or optimising on Parameters.<br><br><br>Episodic environments can choose to optimize over start value assuming optimal behaviour then onwards.<br><br>Formulation Based on average value of the states, for continuous environments, i.e. always be happy in life.<br><br>Average reward per timestep formulation, maximizes the expected reward under the policy.<br><br>All formulations use equivalent maximization approach.<br><br>The following approaches do not use gradients, we have to wait the whole lifetime of our robot to get a single number out of it, i.e. how well it did in it's life.<br>
-<br>Hill Climbing
-<br>Simplex / Amoeba / Nelder Mead
-<br>Genetic Algorithms
-<br>The following are gradient based approaches, we use the trajectory followed by the robot, i.e. states and rewards it sees to optimize policy.<br>
-<br>Gradient Descent
-<br>Conjugate Gradient
-<br>Quasi-Newton
-<br><br><br>To optimise just compute the gradient of objective with respect to , which is easier said than done. Since the derivative may be very high dimensional.<br>Approach 1: Perturb along each axis and compute, e.g. for robot walk with 12 axes of motions, do perturbations along each axis by doing 12 robot walks for each update.<br><img alt="robot-policy-grad" src="lib/media/image-robot-policy-grad.png"><br>Approach 2: Use some stochastic derivative approach, still only use perturbations, but<br>Approach 3: Compute it analytically if it's possible, this is the heart of feasible Policy Gradients.<br><br>Differentiating the policy, we will then want to take expectation of the derivative in the policy. So given the following log-likelihood trick, the computation is now easy, since<br><br>Score of the task, therefore, will be:<br><br><br>You can take softmax of independently weighted features, so the  is the feature vector.<br><br>The score function now is<br><br><br>For continuous action space, the action is centred around a mean and has some variance.<br><br>So the score function now becomes:<br><br><br><br><br>So the derivative, using the log-likelihood trick, that gives the expectation of a gradient back as an expectation is the following:<br><br><br>💡 Policy Gradients Theorem states that for any of the objective optimisations, i.e. initial state max, average state value max, or average reward max, we get the same update formula: <br>This is the same as substituting the value function instead of the reward in the single step problem, so we are using the long term reward.<br><br>Let's use stochastic gradient ascent to do this, use the returned  as an unbiased estimate of .<br><img alt="algo-reinforce" src="lib/media/image-reinforce-algo.png"><br><br><br>The Q values are very high variance, each simulated run will give something else.<br>We want to use a neural network, i.e. the "Critic", which will estimate the value function to reduce this variance.<br><br>To evaluate the policy, we can use:<br>
-<br>Monte Carlo Policy evaluation
-<br>Temporal Difference Learning
-<br>TD() - Hybrid of the methods above
-<br><br><br>Critic: Updates  with Linear TD(0)<br>Actor: Updates  by policy gradients.<br><img alt="algo-q-actor-critic" src="lib/media/image-q-actor-critic-algo.png"><br>We no longer wait till the end of the episode. We use TD error to train the Critic.]]></description><link>notes/reinforcement-learning/policy-methods.html</link><guid isPermaLink="false">Notes/Reinforcement Learning/Policy Methods.md</guid><pubDate>Sun, 13 Jul 2025 13:59:43 GMT</pubDate><enclosure url="lib/media/image-stochastic-policy-example.png" length="0" type="image/png"/><content:encoded>&lt;figure&gt;&lt;img src="lib/media/image-stochastic-policy-example.png"&gt;&lt;/figure&gt;</content:encoded></item><item><title><![CDATA[Graphics Processing Units]]></title><description><![CDATA[ 
- <br>Classical processors have IPC of 4-6 max, usually 1.5-2.5. Limited by fetch and issue width as they have to be general purpose.<br>
-💡 Make a processor with 100s of ALUs that do simple operations.]]></description><link>notes/computer-architecture/graphics-processing-units.html</link><guid isPermaLink="false">Notes/Computer Architecture/Graphics Processing Units.md</guid><pubDate>Sun, 01 Dec 2024 12:55:46 GMT</pubDate></item><item><title><![CDATA[In order processor pipelines]]></title><description><![CDATA[ 
- <br><br><img alt="image-in_order_pipeline_of_cpu.png" src="lib/media/image-in_order_pipeline_of_cpu.png"><br><br>Processor can be divided into 5 logical stages:<br>
-<br>Instruction Fetch
-<br>Operand Fetch
-<br>Execute
-<br>Memory Access
-<br>Register Write-back
-<br><br>Problem with this design: Only one stage of chip is active at any time out of 5.<br>
-Solution: Make each phase process a different instruction.<br>Problem: How to we make each step not interfere with others<br>
-Add pipeline latches. These are negative edge-triggered flip flops at the end of each step (shown in green). The store output of each step of pipeline so that it can be used in the input of the next step (in the next timeframe).<br>Data Hazard: Instruction A does a write on some register, before it's register write-back is done next Instruction B reaches operand-fetch and reads the old value.<br>
-Naive idea, add bubbles (no-ops) whenever such data dependency is noted. We may need to add atmost 3 no-ops, processor decides when to stall.<br>Problem: Data dependencies are pretty common, no-ops are expensive.<br>
-Our previous solution is not the best, so what we can do is feed information not just from the register file but also from the intermediate outputs, and we can multiplex these sources. We do this forwarding as late as possible, and values get forwarded to any prior-stage with future-instruction that needs it. Here we have 4 forwarding multiplexers: RW  MA, RW  EX, RW  OF, RW  EX.<br>Load-Use Hazard: Load produces output one cycle late (because it comes from memory access as opposed to others which come from execute). So it is one instruction cycle too late for the next instruction's execute step.<br>
-Nothing other than stalling can be done, which has to be done by a stall controller which can see the whole pipeline.<br>Control Hazard: A branch instruction is followed by other instructions I, if the branch is taken the other instructions should not have been executed, but they will get through some stages of the pipeline<br>
-We need to convert the incorrectly taken instructions to No-Ops retroactively. We do this by setting a bit in the instruction packet which does that.<br><br>Instructions are of 2 types:<br>
-<br>Static Instructions: Number of instructions that occur in code, code in loop counted only once.
-<br>Dynamic Instructions: Number of instructions that are actually executed, things in loop counted the number of times the loop runs.<br>
-We will use dynamic instructions to measure perfomance.
-<br>Performance is usually computed over several runs of several programs.<br>
-Performance is measured relative to other processors, usually taking a Geometric mean of rations of performance on each program.<br>Performance is:<br>
-<br>How to get high frequency:<br>
-<br>Use smaller, power efficient transistors. Power dissipation is approximately proportional to cube of frequency. There are other ways to reduce power dissipation as well, discussed later.
-<br>Have more pipeline stages, now that each stage is smaller, we can run the clock many times. IPC (instructions per cycle) is one for non-pipelined processor, and less than one for pipelined, but clock speed can increase a lot on pipelining.<br>
-However, increasing pipelines anymore leads to more stall, more latch delays, and therefore we don't get frequency gains. We haven't seen a large frequency increase since about 3GHz in 2005.
-<br>How to get higher IPC:<br>
-<br>Depends on Architecture, things like value forwarding help reduce stall cycles.
-<br>Depends on Compiler, it can rearrange code to loose less cycles to data and control hazards
-]]></description><link>notes/computer-architecture/processor-stages-and-pipelines.html</link><guid isPermaLink="false">Notes/Computer Architecture/Processor Stages and Pipelines.md</guid><pubDate>Sat, 30 Nov 2024 14:13:00 GMT</pubDate><enclosure url="lib/media/image-in_order_pipeline_of_cpu.png" length="0" type="image/png"/><content:encoded>&lt;figure&gt;&lt;img src="lib/media/image-in_order_pipeline_of_cpu.png"&gt;&lt;/figure&gt;</content:encoded></item><item><title><![CDATA[Mixture of Experts]]></title><description><![CDATA[ 
+]]></description><link>notes/large-language-models/architectural-decisions-and-evolution.html</link><guid isPermaLink="false">Notes/Large Language Models/Architectural Decisions and Evolution.md</guid><pubDate>Sun, 13 Jul 2025 14:04:54 GMT</pubDate><enclosure url="lib/media/image-transformer-architecture.png" length="0" type="image/png"/><content:encoded>&lt;figure&gt;&lt;img src="lib/media/image-transformer-architecture.png"&gt;&lt;/figure&gt;</content:encoded></item><item><title><![CDATA[Mixture of Experts]]></title><description><![CDATA[ 
  <br><br><br>Mixture of experts is an architecture that looks like this:<br><br>Instead of looking like this:<br><br>Allows us to train a model with more parameters for the same training FLOPS, which people have shown leads to quicker loss reduction.<br><br>
 <br>Infrastructure is complex. Experts provide natural parallelization; Sparsity is good when you have to data parallelism in training or high throughput inference. If not getting enough value out of sparsity, the infra overhead is a lot.
 <br>Routing decisions are not differentiable, because we have to pick and commit to a particular expert. It can be via heuristics, or be unstable.
@@ -142,4 +113,69 @@ Instead of just taking top-k, it's also possible to soft-sample from the softmax
  <br>A CUDA kernel spawns on many threads and blocks.<br>
 <br>Threads: Individual units of computation where processing is done sequentially, has private access to it's own register variables and not to those of any other threads.
 <br>Blocks: Groups of threads that have access to the same L1 cache, and are colocated on the same streaming-multiprocessor. They share memory and other resources to work together. Each block can have upto 1024 threads (due to a limit on the number of cores in a streaming-multiprocessor).
-<br><img alt="image-nvidia_memory_heirachy_with_sm.png" src="lib/media/image-nvidia_memory_heirachy_with_sm.png">]]></description><link>notes/parallel-algorithms/programming-in-cuda.html</link><guid isPermaLink="false">Notes/Parallel Algorithms/Programming in CUDA.md</guid><pubDate>Mon, 13 Jan 2025 06:43:00 GMT</pubDate><enclosure url="lib/media/image-nvidia_memory_heirachy_with_sm.png" length="0" type="image/png"/><content:encoded>&lt;figure&gt;&lt;img src="lib/media/image-nvidia_memory_heirachy_with_sm.png"&gt;&lt;/figure&gt;</content:encoded></item></channel></rss>
+<br><img alt="image-nvidia_memory_heirachy_with_sm.png" src="lib/media/image-nvidia_memory_heirachy_with_sm.png">]]></description><link>notes/parallel-algorithms/programming-in-cuda.html</link><guid isPermaLink="false">Notes/Parallel Algorithms/Programming in CUDA.md</guid><pubDate>Mon, 13 Jan 2025 06:43:00 GMT</pubDate><enclosure url="lib/media/image-nvidia_memory_heirachy_with_sm.png" length="0" type="image/png"/><content:encoded>&lt;figure&gt;&lt;img src="lib/media/image-nvidia_memory_heirachy_with_sm.png"&gt;&lt;/figure&gt;</content:encoded></item><item><title><![CDATA[What and Why?]]></title><description><![CDATA[ 
+ <br><br><img alt="Model Learning loop" src="lib/media/image-model-based-rl-improvement-loop.png"><br><br><br>
+<br>Value Function or Policy Function maybe hard to approximate, e.g. in chess, and you may want to learn a model of the world and then do a tree search to get value function.
+<br>Learning the model is now just a supervised learning tasks, so it's easy, since given state you predict next state which your environment teaches you.
+<br>The model tells us more about the world, adds in interpretability, and helps us find actions to get to unexplored parts of our world.
+<br><br>
+<br>One more step in the pipeline, adds more scope for error.
+<br><br>A model  is a representation of an MDP , defined by the following rules.<br><br>So our model is .<br>We are performing 2 learning problems:<br>
+<br>Density Estimation Problem 
+<br>Regression Problem 
+<br><br><br>
+<br>Table Lookup Model
+<br>Linear Expectation Model
+<br>Linear Gaussian Model
+<br>Gaussian Process Model
+<br>Deep Belief Networks
+<br>And many others...
+<br><br>Just count from each state and get the probability distribution, and get the average rewards for each.<br>Only works for small state space and action space.<br>Another way to to keep a list of  and randomly sample a matching tuple or set thereof.<br><br><br>To be sample efficient, do Model Free RL by generating samples from the model.<br>Only problem, the error in model compounds to error in policy. To solve this, we can:<br>
+<br>Do model free RL, just let it be.
+<br>Explicily reason about uncertainty of model using Bayesian approach.
+<br><br><br><img alt="DynaRL algorithm" src="lib/media/image-dyna-rl-algorithm.png"><br><br><img alt="DynaRL performance with planning" src="lib/media/image-dyna-rl-performance-with-planning.png"><br>This plot shows the number of steps taken to reach the goal as a function of the number episodes of learning done. Model based is a lot more efficient in simple grid world, it basically learns to avoid going near the walls.<br><br>
+<br>Dyna-Q: Normal Hybrid Q-Learning with simulated experience
+<br>Dyna-Q+: Keep track of last visited time of each state and add a bonus to explore states visited a long time back more.
+<br>Dyna-AC: Actor Critic Learning instead of Q-Learning
+<br><br>Change in the environment removes an old solution and creates a new one, changing all the state value and policy functions.<br><img alt="DynaRL variants reward comparison when harder" src="lib/media/image-comparison-dyna-q-qplus-ac-harder.png"><br><br>Change in the environment at some point in time creates a new solution but does not remove the older one.<br><img alt="DynaRL variants reward comparison when easier" src="lib/media/image-comparison-dyna-q-qplus-ac-easier.png"><br>Refer here for more details on these results: <a rel="noopener nofollow" class="external-link" href="http://www.incompleteideas.net/book/9/node4.html" target="_blank">http://www.incompleteideas.net/book/9/node4.html</a><br><br><br><img alt="MCTS Policy search and rollout" src="lib/media/image-mcts-tree-search-and-rollout.png"><br><br><br>For model-free reinforcement learning, bootstrapping is helpful<br>
+<br>TD learning reduces variance but increases bias
+<br>TD learning is usually more efficient than MC
+<br>TD(λ) can be much more efficient than MC
+<br>For simulation-based search, bootstrapping is also helpful<br>
+<br>TD search reduces variance but increases bias
+<br>TD search is usually more efficient than MC search
+<br>TD(λ) search can be much more efficient than MC search
+<br><br>The temporal difference objective is described as follows:<br>
+<br><img alt="TD variants and UCT wins comparison as a function of simulations" src="lib/media/image-comparison-td-learning-vs-td-search-vs-uct.png"><br><br>In Dyna-2, the agent stores two sets of feature weights<br>
+<br>Long-term memory: updated from real experience, General domain knowledge that applies to any episode
+<br>Short-term (working) memory: updated from simulated experience, Specific local knowledge about the current situation
+<br>Value function is computed from the addition of both of these ideas.]]></description><link>notes/reinforcement-learning/model-based-rl-and-planning.html</link><guid isPermaLink="false">Notes/Reinforcement Learning/Model based RL and Planning.md</guid><pubDate>Sun, 13 Jul 2025 15:52:37 GMT</pubDate><enclosure url="lib/media/image-model-based-rl-improvement-loop.png" length="0" type="image/png"/><content:encoded>&lt;figure&gt;&lt;img src="lib/media/image-model-based-rl-improvement-loop.png"&gt;&lt;/figure&gt;</content:encoded></item><item><title><![CDATA[Policy Methods]]></title><description><![CDATA[ 
+ <br><br>Optimise the Policy directly, without computing value function.<br>Topics:<br>
+<br>Finite Difference Policy Gradients: Use finite differences across time.
+<br>Monte-Carlo Policy Gradient: Follows a randomly sampled trajectory and can move to directions to make it's policy better.
+<br>Actor-Critic Policy Gradient: Combining the methods above with the value function methods.
+<br>We used to generate the policy using value function approximation<br>
+<br>We have a parameterised policy function, where we can change the parameters to improve the policy by changing the distribution from which it's sampled. Adjusting  to maximise net reward is the goal.<br>
+<br><br><br>Advantages:<br>
+<br>Easier to represent the policy compactly, e.g. in Atari games move direction is easier than expected number of points in the future moves.
+<br>Better convergence, more stable, value function can often oscillate or explode or fail to converge.
+<br>Maximising over all actions can be prohibitively expensive, e.g. in continuous action spaces, or combinatorial. Adjust only parameters .
+<br>Learn stochastic policies, e.g. playing rock-paper-scissors needs stochastic behaviour.
+<br>Disadvantages:<br>
+<br>Hard to evaluate policy, evaluation is stochastic.
+<br>Maybe slower to converge, since here small gradient based steps are taken whereas value function maximises in one go.
+<br>It may converge to local optimal instead of the global optimal/
+<br>The contrary of the point above, Value function maybe more compact.
+<br><br><img alt="Stochastic Policy requirement" src="lib/media/image-stochastic-policy-example.png"><br>If we can measure only features of the current state, i.e. it's neighbors, then the two gray cells are identical. So it's not possible to play well here, you always go west or east in the gray squares, so reaching treasure is bad, and you just oscillate (between the left 2 squares) being given a deterministic policy. Stochastic solves the issue.<br>For Markov Decision Process, i.e. Fully Observed, then Deterministic Optimal Policy exists. But this is for POMDP or optimising on Parameters.<br><br><br>Episodic environments can choose to optimize over start value assuming optimal behaviour then onwards.<br><br>Formulation Based on average value of the states, for continuous environments, i.e. always be happy in life.<br><br>Average reward per timestep formulation, maximizes the expected reward under the policy.<br><br>All formulations use equivalent maximization approach.<br><br>The following approaches do not use gradients, we have to wait the whole lifetime of our robot to get a single number out of it, i.e. how well it did in it's life.<br>
+<br>Hill Climbing
+<br>Simplex / Amoeba / Nelder Mead
+<br>Genetic Algorithms
+<br>The following are gradient based approaches, we use the trajectory followed by the robot, i.e. states and rewards it sees to optimize policy.<br>
+<br>Gradient Descent
+<br>Conjugate Gradient
+<br>Quasi-Newton
+<br><br><br>To optimise just compute the gradient of objective with respect to , which is easier said than done. Since the derivative may be very high dimensional.<br>Approach 1: Perturb along each axis and compute, e.g. for robot walk with 12 axes of motions, do perturbations along each axis by doing 12 robot walks for each update.<br><img alt="robot-policy-grad" src="lib/media/image-robot-policy-grad.png"><br>Approach 2: Use some stochastic derivative approach, still only use perturbations, but<br>Approach 3: Compute it analytically if it's possible, this is the heart of feasible Policy Gradients.<br><br>Differentiating the policy, we will then want to take expectation of the derivative in the policy. So given the following log-likelihood trick, the computation is now easy, since<br><br>Score of the task, therefore, will be:<br><br><br>You can take softmax of independently weighted features, so the  is the feature vector.<br><br>The score function now is<br><br><br>For continuous action space, the action is centred around a mean and has some variance.<br><br>So the score function now becomes:<br><br><br><br><br>So the derivative, using the log-likelihood trick, that gives the expectation of a gradient back as an expectation is the following:<br><br><br>💡 Policy Gradients Theorem states that for any of the objective optimisations, i.e. initial state max, average state value max, or average reward max, we get the same update formula: <br>This is the same as substituting the value function instead of the reward in the single step problem, so we are using the long term reward.<br><br>Let's use stochastic gradient ascent to do this, use the returned  as an unbiased estimate of .<br><img alt="algo-reinforce" src="lib/media/image-reinforce-algo.png"><br><br><br>The Q values are very high variance, each simulated run will give something else.<br>We want to use a neural network, i.e. the "Critic", which will estimate the value function to reduce this variance.<br><br>To evaluate the policy, we can use:<br>
+<br>Monte Carlo Policy evaluation
+<br>Temporal Difference Learning
+<br>TD() - Hybrid of the methods above
+<br><br><br>Critic: Updates  with Linear TD(0)<br>Actor: Updates  by policy gradients.<br><img alt="algo-q-actor-critic" src="lib/media/image-q-actor-critic-algo.png"><br>We no longer wait till the end of the episode. We use TD error to train the Critic.]]></description><link>notes/reinforcement-learning/policy-methods.html</link><guid isPermaLink="false">Notes/Reinforcement Learning/Policy Methods.md</guid><pubDate>Sun, 13 Jul 2025 13:59:43 GMT</pubDate><enclosure url="lib/media/image-stochastic-policy-example.png" length="0" type="image/png"/><content:encoded>&lt;figure&gt;&lt;img src="lib/media/image-stochastic-policy-example.png"&gt;&lt;/figure&gt;</content:encoded></item></channel></rss>
